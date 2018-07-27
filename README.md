@@ -1,2 +1,11 @@
 # migrationsverket-lediga-tider
-https://www.migrationsverket.se/Kontakta-oss/Boka-tid-innan-du-besoker-oss.html
+
+För att lämna fingeravtryck och bli fotograferad
+
+https://www.migrationsverket.se/tidsbokning
+
+# environment variables for mailgun
+
+- DOMAIN: domain name
+- API_KEY: private api key
+- PUBLIC_KEY: public validation key
