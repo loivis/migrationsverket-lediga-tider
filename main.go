@@ -1,19 +1,26 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	helpers "github.com/loivis/go-helpers"
+	"github.com/mailgun/mailgun-go/v3"
 	"github.com/tebeka/selenium"
-	mailgun "gopkg.in/mailgun/mailgun-go.v1"
 )
 
 var (
 	domain, apiKey, pubKey string
-	urlFormat              = "https://www.migrationsverket.se/ansokanbokning/valjtyp?sprak=sv&bokningstyp=2&enhet=%s&sokande=3"
+
+	urlFormat = "https://www.migrationsverket.se/ansokanbokning/valjtyp?sprak=sv&bokningstyp=2&enhet=%s&sokande=3"
+
+	offices = map[string]string{
+		"göteborg":   "Z102",
+		"sundbybery": "Z209",
+	}
 )
 
 func init() {
@@ -29,12 +36,8 @@ func main() {
 	var count int
 
 	for {
-		offices := map[string]string{
-			"göteborg":   "Z102",
-			"sundbybery": "Z209",
-		}
-
 		log.Println("count:", count)
+
 		for location, code := range offices {
 			log.Println(location, code)
 
@@ -63,7 +66,7 @@ func main() {
 }
 
 func sendNotification(location, url string) {
-	mail := mailgun.NewMailgun(domain, apiKey, pubKey)
+	mail := mailgun.NewMailgun(domain, apiKey)
 
 	sender := "lediga.tider@" + domain
 	subject := "lediga tider för " + location
@@ -72,7 +75,10 @@ func sendNotification(location, url string) {
 
 	message := mail.NewMessage(sender, subject, body, recipient)
 
-	resp, id, err := mail.Send(message)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	resp, id, err := mail.Send(ctx, message)
 	if err != nil {
 		log.Println(err)
 		return
