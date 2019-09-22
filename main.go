@@ -15,6 +15,7 @@ import (
 
 var (
 	apiKey, domain string
+	recipients     []string
 
 	urlFormat = "https://www.migrationsverket.se/ansokanbokning/valjtyp?sprak=sv&bokningstyp=2&enhet=%s&sokande=3"
 
@@ -30,6 +31,7 @@ func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 	apiKey = os.Getenv("MAILGUN_API_KEY")
 	domain = os.Getenv("MAILGUN_DOMAIN")
+	recipients = strings.Split(os.Getenv("RECIPIENTS"), ",")
 }
 
 func main() {
@@ -81,9 +83,8 @@ func sendNotification(location, url string) {
 	sender := "lediga.tider@" + domain
 	subject := "lediga tider för " + location
 	body := url
-	recipient := "migrationsverket@" + domain
 
-	message := mail.NewMessage(sender, subject, body, recipient)
+	message := mail.NewMessage(sender, subject, body, recipients...)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
